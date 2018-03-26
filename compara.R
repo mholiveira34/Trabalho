@@ -100,7 +100,7 @@ grupo[, 2] <- str_replace_all(grupo[, 2], pattern = ",", replacement = ".")
 frases <-  tokenize_sentences(grupo[, 2])
 frases <- str_split(frases, "[[:punct:]]")
 
-for (i in c(1:48)){
+for (i in c(1:24)){
   frases[[i]]<- removeNumbers( frases[[i]])
   frases[[i]] <- rm_accent( frases[[i]])
   frases[[i]] <- tolower( frases[[i]])
@@ -116,8 +116,8 @@ for (i in c(1:48)){
 
 
 dup <- list()
-atual <- frases[[44]]
-anterior <- frases[[43]]
+atual <- frases[[4]]
+anterior <- frases[[17]]
 for (i in c(1: length(atual))){
 print(i)  
    dup<- c(dup, list(try(anterior[grep(pattern = paste("^",atual[i],"$", sep =""), anterior)])))
