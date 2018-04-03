@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<body> 
+ <style>
+.link {
+stroke: #666;
+opacity: 0.85;
+stroke-width: 1.5px;
+}
+.node circle {
+stroke: #fff;
+opacity: 0.85;
+stroke-width: 1.5px;
+}
+.node:not(:hover) .nodetext {
+display: none;
+}
+text {
+font: 7px serif;
+opacity: 0.85;
+pointer-events: none;
+}
+</style>
+
+<script src=http://d3js.org/d3.v3.min.js></script>
+
+<script> 
+ var links = [ { "source" : 1, "target" : 0, "value" : 18 }, { "source" : 2, "target" : 0, "value" : 225 }, { "source" : 0, "target" : 9, "value" : 6 }, { "source" : 0, "target" : 10, "value" : 90 }, { "source" : 0, "target" : 11, "value" : 24 }, { "source" : 0, "target" : 12, "value" : 3 }, { "source" : 0, "target" : 13, "value" : 3 }, { "source" : 0, "target" : 14, "value" : 21 }, { "source" : 0, "target" : 15, "value" : 6 }, { "source" : 0, "target" : 16, "value" : 3 }, { "source" : 0, "target" : 17, "value" : 21 }, { "source" : 0, "target" : 18, "value" : 6 }, { "source" : 0, "target" : 19, "value" : 3 }, { "source" : 0, "target" : 20, "value" : 48 }, { "source" : 0, "target" : 21, "value" : 3 }, { "source" : 0, "target" : 22, "value" : 3 }, { "source" : 0, "target" : 23, "value" : 24 }, { "source" : 0, "target" : 24, "value" : 6 }, { "source" : 0, "target" : 25, "value" : 3 }, { "source" : 0, "target" : 26, "value" : 51 }, { "source" : 0, "target" : 27, "value" : 12 }, { "source" : 0, "target" : 28, "value" : 24 }, { "source" : 0, "target" : 29, "value" : 12 }, { "source" : 0, "target" : 30, "value" : 18 }, { "source" : 0, "target" : 31, "value" : 15 }, { "source" : 0, "target" : 32, "value" : 3 }, { "source" : 0, "target" : 33, "value" : 3 }, { "source" : 0, "target" : 34, "value" : 63 }, { "source" : 0, "target" : 35, "value" : 3 }, { "source" : 0, "target" : 36, "value" : 6 }, { "source" : 0, "target" : 37, "value" : 3 }, { "source" : 0, "target" : 38, "value" : 3 }, { "source" : 0, "target" : 39, "value" : 3 }, { "source" : 0, "target" : 40, "value" : 6 }, { "source" : 0, "target" : 41, "value" : 21 }, { "source" : 0, "target" : 42, "value" : 27 }, { "source" : 0, "target" : 43, "value" : 6 }, { "source" : 0, "target" : 44, "value" : 3 }, { "source" : 0, "target" : 45, "value" : 12 }, { "source" : 0, "target" : 46, "value" : 9 }, { "source" : 3, "target" : 0, "value" : 3 }, { "source" : 4, "target" : 0, "value" : 21 }, { "source" : 5, "target" : 0, "value" : 204 }, { "source" : 6, "target" : 0, "value" : 3 }, { "source" : 7, "target" : 0, "value" : 159 }, { "source" : 8, "target" : 0, "value" : 9 } ] ; 
+ var nodes = [ { "name" : "laercio", "group" : 10 }, { "name" : "erasmo", "group" : 1 }, { "name" : "helmuth", "group" : 1 }, { "name" : "leodete", "group" : 1 }, { "name" : "luciano", "group" : 1 }, { "name" : "nivaldo", "group" : 1 }, { "name" : "ramos", "group" : 1 }, { "name" : "reginaldo", "group" : 1 }, { "name" : "robson", "group" : 1 }, { "name" : "agnaldo", "group" : 1 }, { "name" : "alex", "group" : 1 }, { "name" : "andre", "group" : 1 }, { "name" : "calgarotto", "group" : 1 }, { "name" : "chang", "group" : 1 }, { "name" : "cidino", "group" : 1 }, { "name" : "denise", "group" : 1 }, { "name" : "doutor", "group" : 1 }, { "name" : "elisete", "group" : 1 }, { "name" : "enzo", "group" : 1 }, { "name" : "fabiana", "group" : 1 }, { "name" : "fabricio", "group" : 1 }, { "name" : "fagner barbosa", "group" : 1 }, { "name" : "francisco", "group" : 1 }, { "name" : "gil", "group" : 1 }, { "name" : "gilson mauro", "group" : 1 }, { "name" : "ivacir", "group" : 1 }, { "name" : "ivo", "group" : 1 }, { "name" : "jaiciane", "group" : 1 }, { "name" : "joao", "group" : 1 }, { "name" : "joice", "group" : 1 }, { "name" : "jorge", "group" : 1 }, { "name" : "julio", "group" : 1 }, { "name" : "leandro", "group" : 1 }, { "name" : "ledenir", "group" : 1 }, { "name" : "lenir", "group" : 1 }, { "name" : "leo", "group" : 1 }, { "name" : "mac", "group" : 1 }, { "name" : "maqui", "group" : 1 }, { "name" : "maria duarte", "group" : 1 }, { "name" : "marta", "group" : 1 }, { "name" : "mauro", "group" : 1 }, { "name" : "paula", "group" : 1 }, { "name" : "paulo", "group" : 1 }, { "name" : "prima aline", "group" : 1 }, { "name" : "roberto", "group" : 1 }, { "name" : "sun chi", "group" : 1 }, { "name" : "volni", "group" : 1 } ] ; 
+ var width = 1300
+height = 1300;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+.nodes(d3.values(nodes))
+.links(links)
+.size([width, height])
+.linkDistance(50)
+.charge(-250)
+.on("tick", tick)
+.start();
+
+var svg = d3.select("body").append("svg")
+.attr("width", width)
+.attr("height", height)
+.attr("pointer-events", "all")
+.call(d3.behavior.zoom().on("zoom", redraw));
+
+var vis = svg
+.append("svg:g");
+
+vis.append("svg:rect")
+.attr("width", width)
+.attr("height", height)
+.attr("fill", 'white');
+
+function redraw() {
+vis.attr("transform",
+"translate(" + d3.event.translate + ")"
++ " scale(" + d3.event.scale + ")");
+}
+
+var link = vis.selectAll(".link")
+.data(force.links())
+.enter().append("line")
+.attr("class", "link")
+.style("stroke-width", function(d) { return d.value/700; });
+
+var node = vis.selectAll(".node")
+.data(force.nodes())
+.enter().append("g")
+.attr("class", "node")
+.style("fill", function(d) { return color(d.group); })
+.style("opacity", 0.85)
+.on("mouseover", mouseover)
+.on("mouseout", mouseout)
+.call(force.drag);
+
+node.append("circle")
+.attr("r", 6)
+
+node.append("svg:text")
+.attr("class", "nodetext")
+.attr("dx", 12)
+.attr("dy", ".35em")
+.text(function(d) { return d.name });
+
+function tick() {
+link
+.attr("x1", function(d) { return d.source.x; })
+.attr("y1", function(d) { return d.source.y; })
+.attr("x2", function(d) { return d.target.x; })
+.attr("y2", function(d) { return d.target.y; });
+
+node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+}
+
+function mouseover() {
+d3.select(this).select("circle").transition()
+.duration(750)
+.attr("r", 16);
+d3.select(this).select("text").transition()
+.duration(750)
+.attr("x", 13)
+.style("stroke-width", ".5px")
+.style("font", "17.5px serif")
+.style("opacity", 1);
+}
+
+function mouseout() {
+d3.select(this).select("circle").transition()
+.duration(750)
+.attr("r", 8);
+}
+
+</script>
+ </body>
