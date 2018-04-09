@@ -1,9 +1,26 @@
+library(stringr)
+library(xlsx)
+library(tm)
+?xlsx
+docs <- data.frame()
+for (i in dir()){
+  docs <- rbind(docs, read.xlsx(i, 1, encoding = "UTF-8")[, c(2, 3)])
+}
+save(docs, file = "Base.RData")
 load("~/Tabelas - Publicano/Classificadas/Base.RData")
 colnames(docs) <- c("text", "sentiment")
 docs$sentiment <- tolower(docs$sentiment)
 
 docs <- docs[!is.na(docs$sentiment), ]
 docs <- docs[docs$sentiment != "v", ]
+docs$text <- tolower(docs$text)
+docs$text <- removePunctuation(docs$text)
+docs$text <- removeWords(docs$text, words = c("advogado", "acusado", "acusada", "juíz", "ministério público"))
+
+
+summary(as.factor(docs$sentiment))
+grep(docs$sentiment, pattern = "summer sessions:")
+docs <- docs[-4189, ]
 
 library("rmongodb")
 library("dplyr")
@@ -182,7 +199,7 @@ my_features <- add_targets(my_features, docs)
 my_features$sentiment <- as.factor(my_features$sentiment)
 
 
-train <- sample_frac(my_features, .9)
+train <- sample_frac(my_features, .8)
 test <- setdiff(my_features, train)
 test <- sample_frac(test, 1)
 
@@ -191,6 +208,48 @@ form <- as.formula(paste("sentiment~", paste(setdiff(names(test), c("sentiment")
 # Single hidden-layer neural network of size 10
 m_nnet <- nnet(form, data=train, size=10, MaxNWts=100000)
 
-pred_nnet <- predict(m_nnet, my_features, type="class")
+pred_nnet <- predict(m_nnet, train, type="class")
 save(m_nnet, file = "modeloredeneural.RData")
-table(my_features$sentiment, pred_nnet)
+table(train$sentiment, pred_nnet)
+
+
+
+
+
+
+
+################UTILIZAÇÃO
+
+load("~/Codigos R/modeloredeneural.RData")
+tokens <- tokenize(frasesnome)
+frasesnome <- frasesnome[lapply(tokens,length)>1]
+tokens <- tokens[lapply(tokens,length)>1]
+#Get corpus, and calculate feature vectors
+my_features <- get_feature_vectors(tokens_list = tokens, corpus_size=500)
+for (i in c(1:length(m_nnet$coefnames))){
+  if(m_nnet$coefnames[i] %in% names(my_features) == FALSE){
+    my_features[m_nnet$coefnames[i]] <- 0}
+}
+
+my_features <- my_features[, order(names(my_features))]
+pols <- predict(m_nnet,newdata= my_features, type="class")
+
+
+library(wordcloud)
+plot(as.factor(pols), col = c("tomato", "goldenrod1", "green3"), 
+     ylim = c(0,500), main = "Polaridade - Frases que citam o cliente")
+
+wordcloud(frasesnome[pols == "negativo"], random.order = FALSE, colors=brewer.pal(6, "Set1"), max.words = 150 )
+?waffle
+
+summary(as.factor(pols))
+
+vals <- c(15, 5, 116)
+val_names <- sprintf("%s (%s)", c("Negativo", "Positivo", "Neutro"), scales::percent(round(vals/sum(vals), 2)))
+names(vals) <- val_names
+
+waffle::waffle(vals, col = c("tomato", "green3", "gold"), 
+               title = "Frases que mencionam Orlando Coelho Aranda - Polaridades", 
+               rows = 6,
+               size = 1) 
+
