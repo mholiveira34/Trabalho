@@ -35,16 +35,35 @@ write(unlist(texto), file = "stfCP.html")
 ###COLABORAÇÃO PREMIADA - STJ FAZER SELENIUM GRR
 
 library(RSelenium)
+library(XML)
 rsDriver()
-rD <- rsDriver(browser = "chrome")
+rD <- rsDriver(browser = "firefox")
 remDr <- rD[["client"]]
-remDr$navigate("https://login.folha.com.br/login?done=http%3A%2F%2Ffolhainvest.folha.uol.com.br%2Fcarteira&service=folhainvest")
 
-
-remDr <- rsDriver()
-remDr$open()
 
 remDr$navigate("http://www.stj.jus.br/SCON/")
 
+box <- remDr$findElement(using = 'xpath', "//input[@id = 'pesquisaLivre']")
+box$sendKeysToElement(list("delação e premiada", key = "enter"))
+acordaos <- remDr$findElement(using = "xpath", "/html/body/div/div[6]/div/div/div[3]/div[2]/div/div/div/div[3]/div[3]/span[2]/a")
 
+acordaos$clickElement()
+
+texto1 <- c()
+for (i in c(1:20)){
+texto <- c()
+processo <- remDr$findElements(using = "xpath", "//div[@class = 'paragrafoBRS']")
+for (i in c(1:length(processo))){
+  texto <- c(texto, as.character(processo[[i]]$getElementText()))
+}
+texto1 <- c(texto1, texto)
+prox <- remDr$findElement(using = "xpath", "//a[@class = 'iconeProximaPagina']")
+prox$clickElement()
+}
+#resumopesquisa > div:nth-child(3) > span:nth-child(2)
 ?RSelenium
+write(unlist(a), "teste.html")
+texto1 <- data.frame(texto1)
+
+texto1 <- data.frame(texto1)
+write.csv2(texto1, "stjDP.csv")
