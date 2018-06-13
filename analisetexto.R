@@ -189,7 +189,7 @@ wordcloud(frasesnome,
           max.words=200, random.order=FALSE,  
           colors=brewer.pal(6, "Dark2"))
 
-corpus2 <- VCorpus(VectorSource(x = noquote(frasesnome)), #cada frase é um documento, todas citam o Nome
+corpus2 <- VCorpus(VectorSource(x = noquote(emir$texto)), #cada frase é um documento, todas citam o Nome
                    readerControl = list(language = "pt",
                                                                                 load = TRUE))
 
@@ -225,6 +225,7 @@ wordcloud(words = assocs$palavra, freq = assocs$value*100,
 
 
 setwd("~/")
+emir <- read.delim("emir.txt")
 sent <- read.table("lexico_v3.0.txt",
                    header = FALSE,
                    sep = ",",
@@ -232,7 +233,7 @@ sent <- read.table("lexico_v3.0.txt",
                    stringsAsFactors = FALSE)
 names(sent) <- c("term", "class", "pol", "ann")
 head(sent)
-
+sent <- sent[-which(sent$term == "acusado"), ]
 
 inter <- intersect(x = Terms(dtm),
                    y = sent$term)
@@ -254,20 +255,23 @@ polaridades <- data.frame(polaridades)
 
 polaridades[which(abs(polaridades$polaridades) <0.05), ] <- 0
 polaridades[which(abs(polaridades$polaridades) == "NaN"), ] <- 0
+#polaridades <- polaridades+1
 polaridades$Classificação <- ifelse(polaridades>0,"Positivo",
                                  ifelse(polaridades< 0,
                                        "Negativo",
                                         ifelse(polaridades==0,"Neutro",0)))
 
+emir <- read.delim("emir.txt")[, c(1, 2, 3)]
 
-
+emir <- cbind(emir, polaridades)
+write.csv2(emir, file ="emir.csv")
 library(ggplot2)
 qplot(polaridades, 
       data=polaridades, 
       geom="histogram", 
       col=I("Black"),
       binwidth = 1,
-      fill=factor(polaridades))+xlab("Score") + ylab("Frequência") + ggtitle("Polaridades por Citações - José luiz Favoreto Pereira")
+      fill=factor(polaridades))+xlab("Score") + ylab("Frequência") + ggtitle("Polaridades por Citações - Emir Kabbach")
 
 qplot(factor(Classificação), 
       data=polaridades, geom="bar",
