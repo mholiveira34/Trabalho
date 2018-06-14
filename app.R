@@ -193,7 +193,7 @@ server <- function(input, output) {
     
     chamadas <- filedata2() #read.csv(input$file2$datapath, header = TRUE, sep = ";")
     
-    y <- classif(chamadas, tabela, input)
+    y <<- classif(chamadas, tabela, input)
     y
     })
     
@@ -201,15 +201,16 @@ server <- function(input, output) {
     output$contents <-
                  renderTable({ tab()}
                   
-                   #output$resumo <- renderTable(summary("contents"))
+                   
                  )
     output$resumo <- renderPrint({
       tabela1 <- tab()
       summary(tabela1[, ncol(tabela1)])
     })
   
-  output$download <- tabedownloadHandler(
-    filename = paste0("download_", Sys.Date(),".csv"), 
+  output$download <-
+    downloadHandler(
+    filename = function(){"name.csv"}, 
     content = function(file){
       write.csv(y, file)
        }
