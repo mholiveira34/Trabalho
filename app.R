@@ -1,4 +1,5 @@
 library(shiny)
+library(shinythemes)
 options(shiny.maxRequestSize=30*1024^2) 
 
 foradoprazo <- function(y, tabela, input){
@@ -35,14 +36,17 @@ classif <- function(chamadas, tabela, input){
    
     vetor <- c()
     for (j in as.character(check$DATAINICIO[!is.na(check$DATAINICIO)])){
-      vetor <- c(vetor, seq(as.Date(j), as.Date(subset(check$DATAFIM, check$DATAINICIO == j), "%d/%m/%Y")[1], by = "days"))
+      vetor <- c(vetor, seq(as.Date(j), as.Date(subset(check$DATAFIM, check$DATAINICIO == j), 
+                                                "%d/%m/%Y")[1], by = "days"))
     }
     
-    xx <- cbind(lig, ifelse(as.numeric(lig$DATA) %in% vetor==TRUE, "Autorizada", FALSE))
+    xx <- cbind(lig, ifelse(as.numeric(lig$DATA) %in% vetor==TRUE, 
+                            "Autorizada", FALSE))
     y <- rbind(y, xx) 
   } 
   x <- foradoprazo(y, tabela, input)
-  y[, ncol(y)] <- ifelse(y[, which(names(y) == input$ID)] %in% x[, which(names(x)==input$ID)], "Fora do Prazo", y[, ncol(y)] )
+  y[, ncol(y)] <- ifelse(y[, which(names(y) == input$ID)] %in% x[, which(names(x)==input$ID)],
+                         "Fora do Prazo", y[, ncol(y)] )
   vetor <- c()
   for (i in y[, ncol(y)]){
     if( i == 1){
@@ -63,16 +67,16 @@ classif <- function(chamadas, tabela, input){
 
 
 # Define UI for data upload app ----
-ui <- fluidPage(
+ui <- navbarPage( theme = shinytheme("united"), 
   
   # App title ----
-  titlePanel("Classificação de Interceptação Telefônica"),
+"Classificação de Interceptação Telefônica",
   
   # Sidebar layout with input and output definitions ----
-  sidebarLayout(
+ tabPanel("Tabela",
     
     # Sidebar panel for inputs ----
-    sidebarPanel(
+    sidebarPanel( 
       
       # Input: Select a file ----
       fileInput("file1", "Escolha o arquivo com as datas de início e fim dos períodos de interceptação.",
@@ -99,8 +103,9 @@ ui <- fluidPage(
       uiOutput("data"), 
       actionButton("check", "Enviar"), 
       downloadButton("download", "Download")
-      # Input: Select number of rows to display ----
-      
+    
+      # Input: Select number of rows to display ---
+    
       
     ),
     
@@ -108,13 +113,27 @@ ui <- fluidPage(
     mainPanel(tabsetPanel(
       
       # Output: Data file ----
-      tabPanel("tabela", tableOutput("contents")),
+      tabPanel("Tabela Completa", value =1, 
+               h3(textOutput("Tabela de Chamadas Classificadas")), 
+               tableOutput("contents"), id = "tabselected"),
       
-      tabPanel("Resumo", verbatimTextOutput("resumo"))
+      tabPanel("Resumo", value = 1,
+               h3(textOutput("Totais")), 
+               verbatimTextOutput("resumo"), 
+               h3(textOutput("Classificações por Telefone")),
+               verbatimTextOutput("tabelaClass"))
+      
     )
     )
     
-  )
+  ), 
+tabPanel("Gráficos", 
+         sidebarPanel(
+           h3(textOutput("Gráficossss")),
+           uiOutput("seletor")), 
+         mainPanel(
+           
+         ))
 )
 
 # Define server logic to read selected file ----
@@ -158,6 +177,14 @@ server <- function(input, output) {
     
   })
   
+  output$Seletor <- renderUI({
+  req(y)
+    items=unique(y[, input$telefones2])
+    names(items)=items
+    selectInput("seletor", "Selecione o Terminal", items)
+    
+  })
+  
   output$dataFim <- renderUI({
     df <-filedata1()
     if (is.null(df)) return(NULL)
@@ -198,22 +225,21 @@ server <- function(input, output) {
     })
     
     
-    output$contents <-
-                 renderTable({ tab()}
+    output$contents <- renderTable({ tab()} )
                   
-                   
-                 )
+                
     output$resumo <- renderPrint({
       tabela1 <- tab()
       summary(tabela1[, ncol(tabela1)])
     })
   
-  output$download <-
-    downloadHandler(
-    filename = function(){"name.csv"}, 
-    content = function(file){
-      write.csv(y, file)
-       }
+    output$tabelaClass <- renderPrint(table(y[, input$telefones2], y$classificação))
+  
+    output$download <-
+      downloadHandler(
+      filename = paste0("download_", Sys.Date(),".csv"), 
+      content = function(file){
+        write.csv2(y, file)}
      )})
 }
 
