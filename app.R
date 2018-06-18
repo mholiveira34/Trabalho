@@ -1,6 +1,8 @@
 library(shiny)
-library(shinythemes)
+library(ggplot2)
+  library(vistime)
 options(shiny.maxRequestSize=30*1024^2) 
+
 
 foradoprazo <- function(y, tabela, input){
   falsos <- subset(y, y[, ncol(y)] == FALSE)
@@ -15,9 +17,9 @@ foradoprazo <- function(y, tabela, input){
       
       if(falsos$DATA[i] %in% d6dia){x <- rbind(x, falsos[i, ])}
       
-     
+      
     }}
-   return(x)
+  return(x)
 }
 
 classif <- function(chamadas, tabela, input){
@@ -33,20 +35,17 @@ classif <- function(chamadas, tabela, input){
     check <- tabela[tabela[, which(names(tabela) == input$telefones)]  == i, ]
     # RO == 1 indica que os periodos autorizados são os classificados com "1"
     check <- subset(check, RO == 1)
-   
+    
     vetor <- c()
     for (j in as.character(check$DATAINICIO[!is.na(check$DATAINICIO)])){
-      vetor <- c(vetor, seq(as.Date(j), as.Date(subset(check$DATAFIM, check$DATAINICIO == j), 
-                                                "%d/%m/%Y")[1], by = "days"))
+      vetor <- c(vetor, seq(as.Date(j), as.Date(subset(check$DATAFIM, check$DATAINICIO == j), "%d/%m/%Y")[1], by = "days"))
     }
     
-    xx <- cbind(lig, ifelse(as.numeric(lig$DATA) %in% vetor==TRUE, 
-                            "Autorizada", FALSE))
+    xx <- cbind(lig, ifelse(as.numeric(lig$DATA) %in% vetor==TRUE, "Autorizada", FALSE))
     y <- rbind(y, xx) 
   } 
   x <- foradoprazo(y, tabela, input)
-  y[, ncol(y)] <- ifelse(y[, which(names(y) == input$ID)] %in% x[, which(names(x)==input$ID)],
-                         "Fora do Prazo", y[, ncol(y)] )
+  y[, ncol(y)] <- ifelse(y[, which(names(y) == input$ID)] %in% x[, which(names(x)==input$ID)], "Fora do Prazo", y[, ncol(y)] )
   vetor <- c()
   for (i in y[, ncol(y)]){
     if( i == 1){
@@ -55,7 +54,7 @@ classif <- function(chamadas, tabela, input){
     else{if(i == 2){
       vetor <- c(vetor, "Não Autorizada")
     }
-    else{ vetor <- c(vetor, "Fora do Prazo")}}
+      else{ vetor <- c(vetor, "Fora do Prazo")}}
     
   }
   y <- cbind(chamadas, vetor)
@@ -67,73 +66,60 @@ classif <- function(chamadas, tabela, input){
 
 
 # Define UI for data upload app ----
-ui <- navbarPage( theme = shinytheme("united"), 
-  
-  # App title ----
-"Classificação de Interceptação Telefônica",
-  
-  # Sidebar layout with input and output definitions ----
- tabPanel("Tabela",
-    
-    # Sidebar panel for inputs ----
-    sidebarPanel( 
-      
-      # Input: Select a file ----
-      fileInput("file1", "Escolha o arquivo com as datas de início e fim dos períodos de interceptação.",
-                
-                accept = c("text/csv",
-                           "text/comma-separated-values,text/plain",
-                           ".csv")),
-      uiOutput("Telefones"),
-      
-      
-      uiOutput("dataInicio"),
-      # Input: Select number of rows to display ----
-      uiOutput("dataFim"), 
-     
-      
-      fileInput("file2", "Escolha o arquivo com os dados das chamadas interceptadas",
-                
-                accept = c("text/csv",
-                           "text/comma-separated-values,text/plain",
-                           ".csv")),
-      uiOutput("Telefones2"),
-      
-      uiOutput("id"), 
-      uiOutput("data"), 
-      actionButton("check", "Enviar"), 
-      downloadButton("download", "Download")
-    
-      # Input: Select number of rows to display ---
-    
-      
-    ),
-    
-    # Main panel for displaying outputs ----
-    mainPanel(tabsetPanel(
-      
-      # Output: Data file ----
-      tabPanel("Tabela Completa", value =1, 
-               h3(textOutput("Tabela de Chamadas Classificadas")), 
-               tableOutput("contents"), id = "tabselected"),
-      
-      tabPanel("Resumo", value = 1,
-               h3(textOutput("Totais")), 
-               verbatimTextOutput("resumo"), 
-               h3(textOutput("Classificações por Telefone")),
-               verbatimTextOutput("tabelaClass"))
-      
-    )
-    )
-    
-  ), 
-tabPanel("Gráficos", 
-         sidebarPanel(
-           h3(textOutput("Gráficossss")),
-           uiOutput("seletor")), 
-         mainPanel(
-           
-         ))
+ui <- fluidPage( theme = shinytheme("united"),
+                 
+                 # App title ----
+                 titlePanel("Classificação de Interceptação Telefônica"),
+                 
+                 # Sidebar layout with input and output definitions ----
+                 sidebarLayout(
+                   
+                   # Sidebar panel for inputs ----
+                   sidebarPanel(
+                     
+                     # Input: Select a file ----
+                     fileInput("file1", "Escolha o arquivo com as datas de início e fim dos períodos de interceptação.",
+                               
+                               accept = c("text/csv",
+                                          "text/comma-separated-values,text/plain",
+                                          ".csv")),
+                     uiOutput("Telefones"),
+                     
+                     
+                     uiOutput("dataInicio"),
+                     # Input: Select number of rows to display ----
+                     uiOutput("dataFim"), 
+                     
+                     
+                     fileInput("file2", "Escolha o arquivo com os dados das chamadas interceptadas",
+                               
+                               accept = c("text/csv",
+                                          "text/comma-separated-values,text/plain",
+                                          ".csv")),
+                     uiOutput("Telefones2"),
+                     
+                     uiOutput("id"), 
+                     uiOutput("data"), 
+                     actionButton("check", "Enviar"), 
+                     downloadButton("download", "Download")
+                     # Input: Select number of rows to display ----
+                     
+                     
+                   ),
+                   
+                   # Main panel for displaying outputs ----
+                   mainPanel(tabsetPanel(
+                     
+                     # Output: Data file ----
+                     tabPanel("Tabela", tableOutput("contents")),
+                     
+                     tabPanel("Resumo", verbatimTextOutput("resumo"), verbatimTextOutput("tabelaClass")),
+                     tabPanel("Gráficos", uiOutput("seletor"), plotOutput("grafico",  width = 500)
+                            )
+                   )
+                   )
+                   
+                 )
 )
 
 # Define server logic to read selected file ----
@@ -150,9 +136,9 @@ server <- function(input, output) {
   
   
   output$Telefones <- renderUI({
-    df <-filedata1()
+     df <-filedata1()
     if (is.null(df)) return(NULL)
-    
+   
     items=names(df)
     names(items)=items
     selectInput("telefones", "Coluna de Telefone:", items)
@@ -168,20 +154,12 @@ server <- function(input, output) {
   })
   
   output$dataInicio <- renderUI({
-    df <-filedata1()
+     df <-filedata1()
     if (is.null(df)) return(NULL)
     
     items=names(df)
     names(items)=items
     selectInput("datainicio", "Coluna de Data Inicial", items)
-    
-  })
-  
-  output$Seletor <- renderUI({
-  req(y)
-    items=unique(y[, input$telefones2])
-    names(items)=items
-    selectInput("seletor", "Selecione o Terminal", items)
     
   })
   
@@ -216,7 +194,7 @@ server <- function(input, output) {
   })
   
   observeEvent(input$check, {
-    tab <- reactive({  tabela <- filedata1() #read.csv(input$file1$datapath, header = TRUE, sep = ";")
+    tab <- reactive({  tabela <<- filedata1() #read.csv(input$file1$datapath, header = TRUE, sep = ";")
     
     chamadas <- filedata2() #read.csv(input$file2$datapath, header = TRUE, sep = ";")
     
@@ -225,23 +203,47 @@ server <- function(input, output) {
     })
     
     
-    output$contents <- renderTable({ tab()} )
+    output$contents <-
+      renderTable({ tab()}
                   
-                
+                  
+      )
     output$resumo <- renderPrint({
       tabela1 <- tab()
       summary(tabela1[, ncol(tabela1)])
     })
+    
   
+    
+    output$seletor <- renderUI({
+    df2 <-filedata2()
+    if (is.null(df2)) return(NULL)
+    items=unique(df2[, input$telefones2])
+    names(items)=items
+    selectInput("alvo", "Selecione o alvo:", items)
+  })
     output$tabelaClass <- renderPrint(table(y[, input$telefones2], y$classificação))
-  
+    
     output$download <-
       downloadHandler(
-      filename = paste0("download_", Sys.Date(),".csv"), 
-      content = function(file){
-        write.csv2(y, file)}
-     )})
+        filename = function(){"tabela.csv"}, 
+        content = function(file){
+          write.csv(y, file)
+        }
+      )})
+  
+  observeEvent(input$alvo, {output$grafico <- renderPlot(ggplot(y[y[, input$telefones2] == input$alvo, ],
+                                                                       aes(x=as.factor(y[y[, input$telefones2] == input$alvo, ]$classificação)))
+                                                                          + geom_bar(fill="skyblue")
+                                                                          +theme(legend.position = "none") +
+                                                                          labs(x = "Classificação", y = "Número de Chamadas")
+                                                        
+  )
+    })
+
+
 }
 
 # Create Shiny app ----
 shinyApp(ui, server)
+
