@@ -1,6 +1,6 @@
 library(shiny)
 library(ggplot2)
-  library(vistime)
+  library(shinythemes)
 options(shiny.maxRequestSize=30*1024^2) 
 
 
@@ -114,7 +114,8 @@ ui <- fluidPage( theme = shinytheme("united"),
                      tabPanel("Tabela", tableOutput("contents")),
                      
                      tabPanel("Resumo", verbatimTextOutput("resumo"), verbatimTextOutput("tabelaClass")),
-                     tabPanel("Gráficos", uiOutput("seletor"), plotOutput("grafico",  width = 500)
+                     tabPanel("Gráficos", uiOutput("seletor"), plotOutput("grafico",  width = 500), plotOutput("grafico2", width = 1300
+                                                                                                          , height = 700)
                             )
                    )
                    )
@@ -228,7 +229,7 @@ server <- function(input, output) {
       downloadHandler(
         filename = function(){"tabela.csv"}, 
         content = function(file){
-          write.csv(y, file)
+          write.csv2(y, file)
         }
       )})
   
@@ -239,7 +240,12 @@ server <- function(input, output) {
                                                                           labs(x = "Classificação", y = "Número de Chamadas")
                                                         
   )
-    })
+  output$grafico2 <- renderPlot(ggplot(y[y[, input$telefones2] == input$alvo, ], aes(as.factor(DATA), fill = classificação))
+                                +geom_bar()+theme(axis.text.x = element_text(size=7, angle=45)))
+                                                                             
+                               
+                                
+  })
 
 
 }
