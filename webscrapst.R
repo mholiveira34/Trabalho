@@ -4,9 +4,9 @@ library(stringr)
 
 
 #PEGA O TEMA DA BUSCA
-chave1 <- "bem+jurídico"
-chave2 <- "penal"
-  
+chave1 <- 'bem+jurídico+e+administração+pública'
+chave2 <- "penal+nao+militar"
+
 tema <- URLencode(paste(c(chave1, chave2), collapse = "+e+"))
 url <- paste0("http://www.stf.jus.br/portal/jurisprudencia/listarJurisprudencia.asp?s1=%28", tema, "%29&pagina=")
 pagina <- htmlParse(paste0(url, 1, "&base=baseAcordaos"), 
@@ -16,7 +16,7 @@ pgs <- as.numeric(paste0(as.vector(str_extract_all(NM, "[[:digit:]]")[[1]][-1]),
 
 #LE AS PAGINAS DE RESULTADOS
 texto <- list()
-for (i in c(28:pgs)){
+for (i in c(1:pgs)){
   pagina <- htmlParse(paste0(url, i, "&base=baseAcordaos"), 
                       encoding = "UTF-8")
   print(i)
@@ -58,7 +58,9 @@ ementa1 <- c()
 for (i in c(1:length(ementa))){
 frases <-  str_split(ementa[i], "[[:digit:]]\\. ")
 frasesc <- c(frases[[1]][grep(tolower(frases[[1]]), pattern = "bem jurídico")], 
-                 frases[[1]][grep(tolower(frases[[1]]), pattern = chave2)])
+                 frases[[1]][grep(tolower(frases[[1]]), pattern = "administração")], 
+             frases[[1]][grep(tolower(frases[[1]]), pattern = "juridic")], 
+             frases[[1]][grep(tolower(frases[[1]]), pattern = "bens jurídicos")])
 frasesc <- paste(frasesc, collapse = ", ")
 if(length(frasesc)>0){
 ementa1 <- c(ementa1, frasesc)}
@@ -109,11 +111,10 @@ library(XML)
 rD <- rsDriver(browser = "firefox")
 remDr <- rD[["client"]]
 
-
 remDr$navigate("http://www.stj.jus.br/SCON/")
 #pega o tema
-chave1 <- "bem jurídico"
-chave2 <- "penal"
+tema <- '"administração pública" e "bem jurídico" e penal nao militar'
+#chave2 <- "penal"
 tema <- paste(chave1, chave2, sep = " e ")
 #entra na pagina e pesquisa o tema
 box <- remDr$findElement(using = 'xpath', "//input[@id = 'pesquisaLivre']")
@@ -172,7 +173,9 @@ conteudo1 <- c()
 for (i in c(1:nrow(TABELA))){
   frases <-  str_split(TABELA$conteudo[i], "[[:digit:]]\\. ")
   frasesc <- c(frases[[1]][grep(tolower(frases[[1]]), pattern = "bem jurídico")], 
-               frases[[1]][grep(tolower(frases[[1]]), pattern = chave2)])
+               frases[[1]][grep(tolower(frases[[1]]), pattern = "administração")], 
+               frases[[1]][grep(tolower(frases[[1]]), pattern = "juridic")], 
+               frases[[1]][grep(tolower(frases[[1]]), pattern = "bens jurídicos")])
   frasesc <- paste(frasesc, collapse = ", ")
   if(length(frasesc)>0){
     conteudo1 <- c(conteudo1, frasesc)}

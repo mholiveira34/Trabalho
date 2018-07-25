@@ -73,7 +73,7 @@ inspect(dtm)
 
 dtm.matrix = as.matrix(dtm)
 
-distMatrix <- dist(dtm.matrix, method="cosine")
+distMatrix <- dist(dtm.matrix, method="euclidian")
 head(distMatrix)
 #hierarchical clustering method:
 #Assign each document to its own (single member) cluster
@@ -116,8 +116,8 @@ for (i in c(1:24)){
 
 
 dup <- list()
-atual <- frases[[4]]
-anterior <- frases[[17]]
+atual <- frases[[19]]
+anterior <- frases[[18]]
 for (i in c(1: length(atual))){
 print(i)  
    dup<- c(dup, list(try(anterior[grep(pattern = paste("^",atual[i],"$", sep =""), anterior)])))

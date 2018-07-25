@@ -1,0 +1,111 @@
+---
+title: "Dashboard - Notícias"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+---
+
+```{r include = FALSE}
+library(knitr)
+library(XML)
+library(stringr)
+library(tm)
+library(RCurl)
+```
+
+# Intro {.sidebar}
+O Dashboard disponibiliza as últimas 5 notícias que mencionam Beto Richa publicadas em cada veículo.
+
+# Folha de São Paulo
+
+
+## Folha de São Paulo
+
+```{r echo = FALSE}
+pagina <- htmlParse("http://search.folha.uol.com.br/?q=beto+richa")
+
+link <-  unique(data.frame(unlist(sapply(xpathSApply(pagina, '//ol/li/div/div/a'), xmlAttrs))))
+titulo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                              '//h2[@class = "c-headline__title"]'), xmlValue))
+resumo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                             '//p[@class = "c-headline__standfirst"]'), xmlValue))
+data <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                            '//time[@class = "c-headline__dateline"]'), xmlValue))
+titulos<- paste0("[", titulo, "](", link[, 1], ")")
+tabela <- data.frame(titulos, resumo, data)[1:10, ]
+names(tabela) <- c("TÍTULO", "TEXTO", "DATA")
+
+kable(tabela[1:5, ], caption = "Notícias veiculadas no jornal Folha de São Paulo")
+```
+
+
+# Estadão
+
+## Estadão
+
+```{r echo = FALSE}
+pagina <- getURL("https://busca.estadao.com.br/?q=beto+richa")
+pagina <- htmlParse(pagina, encoding = "UTF-8")
+link <-  t(unique(data.frame(unlist(sapply(xpathSApply(pagina, '//a[@class = "link-title"]'), xmlAttrs)))))[, 1]
+titulo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                              '//h3[@class = "third"]'), xmlValue))
+resumo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                             '//a/p'), xmlValue))
+data <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                            '//span[@class = "data-posts"]'), xmlValue))
+titulos<- paste0("[", titulo, "](", link, ")")
+tabela <- data.frame(titulos, resumo, data)[1:10, ]
+row.names(tabela) <- NULL
+
+names(tabela) <- c("TÍTULO", "TEXTO", "DATA")
+kable(tabela[1:5, ], caption = "Notícias veiculadas no jornal Estadão")
+
+```
+
+# O Globo
+## O Globo
+
+```{r echo = FALSE}
+pagina <- htmlParse("http://oglobo.globo.com/busca/?q=beto+richa")
+links <- sapply(xpathSApply(pagina, '//*[@title]'), xmlAttrs)
+link <- links[3, 2:11]
+
+titulo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                             '//*[@title]'), xmlValue))[2:11]
+
+resumo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                           '//*[@class = "busca-highlight" or @class = "highlight"]'), xmlValue))
+data <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                           '//span[@class = "tempo-decorrido" or @class = "busca-tempo-decorrido"]'), xmlValue))
+link <- gsub(link, pattern = "^//", replacement = "http://")
+titulos<- paste0("[", titulo, "](", link, ")")
+tabela <- data.frame(titulos, resumo, data)
+
+names(tabela) <- c("TÍTULO", "TEXTO", "DATA")
+kable(tabela[1:5, ], caption = "Notícias veiculadas no jornal O Globo")
+```
+
+# Contraponto
+## Contraponto
+
+```{r echo = FALSE}
+pagina <- getURL("https://contraponto.jor.br/?s=beto+richa")
+
+pagina <- htmlParse(pagina)
+links <- sapply(xpathSApply(pagina, '//div/h2/a'), xmlAttrs)
+
+titulo <- stripWhitespace(sapply(xpathSApply(pagina, '//div/h2/a'), xmlValue))
+
+resumo <- stripWhitespace(sapply(xpathSApply(pagina, 
+                                             '//div[@class = "ecae"]'), xmlValue))
+data <- as.Date.character(stripWhitespace(sapply(xpathSApply(pagina, 
+                                           '//span[@class = "updated rich-snippet-hidden"]'), 
+                                           xmlValue)))
+link <- gsub(link, pattern = "^//", replacement = "http://")
+titulos<- paste0("[", titulo, "](", link, ")")
+tabela <- data.frame(titulos, resumo, data)
+
+names(tabela) <- c("TÍTULO", "TEXTO", "DATA")
+kable(tabela[1:5, ], caption = "Notícias veiculadas no jornal Contraponto")
+
+```
